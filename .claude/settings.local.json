@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(dir:*)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\jerry\\\\Desktop\\\\hobby\\\\extension\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(npm run lint)",
+      "Bash(vsce package:*)",
+      "Bash(npx @vscode/vsce package:*)",
+      "Bash(node ./node_modules/@vscode/vsce/vsce package:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\jerry\\Desktop\\hobby\\extension"
+    ]
+  }
+}

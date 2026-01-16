@@ -1,0 +1,197 @@
+{
+  "name": "timely-chat-vscode",
+  "displayName": "Timely Chat",
+  "description": "Timely GPT AI Chat integration for VS Code with keyboard shortcuts, chat history, and code sharing",
+  "version": "0.0.2",
+  "publisher": "timely",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "chat",
+    "ai",
+    "timely",
+    "chatbot",
+    "assistant"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "timely-chat",
+          "title": "Timely Chat",
+          "icon": "media/chat-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "timely-chat": [
+        {
+          "type": "webview",
+          "id": "timely-chat.sidebarView",
+          "name": "Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "timely-chat.openChat",
+        "title": "Timely Chat: Open Chat in Editor",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "timely-chat.closeChat",
+        "title": "Timely Chat: Close Chat",
+        "icon": "$(close)"
+      },
+      {
+        "command": "timely-chat.toggleChatbot",
+        "title": "Timely Chat: Toggle Chatbot",
+        "icon": "$(robot)"
+      },
+      {
+        "command": "timely-chat.configure",
+        "title": "Timely Chat: Configure Settings"
+      },
+      {
+        "command": "timely-chat.sendSelection",
+        "title": "Timely Chat: Send Selection to Chat",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "timely-chat.showHistory",
+        "title": "Timely Chat: Show Chat History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "timely-chat.clearHistory",
+        "title": "Timely Chat: Clear Chat History"
+      },
+      {
+        "command": "timely-chat.exportHistory",
+        "title": "Timely Chat: Export Chat History"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "timely-chat.sendSelection",
+          "when": "editorHasSelection",
+          "group": "timely-chat@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "timely-chat.openChat",
+          "when": "view == timely-chat.sidebarView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "timely-chat.openChat",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "timely-chat.toggleChatbot",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t"
+      },
+      {
+        "command": "timely-chat.sendSelection",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "Timely Chat",
+      "properties": {
+        "timelyChat.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Timely API Key"
+        },
+        "timelyChat.spaceRefId": {
+          "type": "string",
+          "default": "",
+          "description": "Space Reference ID"
+        },
+        "timelyChat.userName": {
+          "type": "string",
+          "default": "",
+          "description": "User display name"
+        },
+        "timelyChat.providerId": {
+          "type": "string",
+          "default": "",
+          "description": "User provider ID"
+        },
+        "timelyChat.environment": {
+          "type": "string",
+          "enum": [
+            "production",
+            "staging"
+          ],
+          "default": "production",
+          "description": "API Environment"
+        },
+        "timelyChat.serviceName": {
+          "type": "string",
+          "default": "Timely Chat",
+          "description": "Service name displayed in chat"
+        },
+        "timelyChat.avatarIcon": {
+          "type": "string",
+          "default": "",
+          "description": "Avatar icon URL"
+        },
+        "timelyChat.chatbotIcon": {
+          "type": "string",
+          "default": "",
+          "description": "Chatbot icon URL"
+        },
+        "timelyChat.faq": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Frequently Asked Questions"
+        },
+        "timelyChat.instructions": {
+          "type": "string",
+          "default": "",
+          "description": "Additional chatbot instructions"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^8.45.0",
+    "typescript": "^5.1.6"
+  }
+}
