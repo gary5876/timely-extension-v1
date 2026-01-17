@@ -196,9 +196,9 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
 
     body {
       font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
+      font-size: 13px;
       color: var(--vscode-foreground);
-      background: var(--vscode-sideBar-background);
+      background: var(--vscode-editor-background);
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -209,22 +209,22 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--vscode-panel-border);
-    }
-
-    .header-title {
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--vscode-sideBarSectionHeader-foreground);
+      background: var(--vscode-editor-background);
+      min-height: 44px;
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
+    }
+
+    .header-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--vscode-foreground);
     }
 
     .header-actions {
@@ -237,14 +237,16 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       background: transparent;
       border: none;
       color: var(--vscode-foreground);
-      padding: 4px;
-      border-radius: 3px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       cursor: pointer;
       opacity: 0.7;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 16px;
+      transition: all 0.15s ease;
     }
 
     .icon-btn:hover {
@@ -252,20 +254,21 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       opacity: 1;
     }
 
-    .icon-btn[title]:hover::after {
-      content: attr(title);
-    }
-
     .model-select {
       background: var(--vscode-dropdown-background);
       color: var(--vscode-dropdown-foreground);
       border: 1px solid var(--vscode-dropdown-border);
-      border-radius: 3px;
-      padding: 2px 4px;
-      font-size: 10px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
       cursor: pointer;
       outline: none;
-      max-width: 90px;
+      max-width: 120px;
+      transition: border-color 0.15s ease;
+    }
+
+    .model-select:hover {
+      border-color: var(--vscode-focusBorder);
     }
 
     .model-select:focus {
@@ -276,108 +279,219 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
+      padding: 0;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--vscode-scrollbarSlider-background);
+      border-radius: 4px;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+      background: var(--vscode-scrollbarSlider-hoverBackground);
     }
 
     .message {
-      margin-bottom: 16px;
+      padding: 16px 20px;
       animation: fadeIn 0.2s ease;
     }
 
+    .message.user {
+      background: var(--vscode-editor-background);
+    }
+
+    .message.assistant {
+      background: var(--vscode-sideBar-background, rgba(0,0,0,0.05));
+    }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .message-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .message-avatar.user {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+
+    .message-avatar.assistant {
+      background: linear-gradient(135deg, #da7756 0%, #d4a574 100%);
+      color: white;
     }
 
     .message-role {
       font-weight: 600;
-      font-size: 11px;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .message-role.user {
-      color: var(--vscode-textLink-foreground);
-    }
-
-    .message-role.assistant {
-      color: var(--vscode-gitDecoration-addedResourceForeground, #4ec9b0);
+      font-size: 13px;
+      color: var(--vscode-foreground);
     }
 
     .message-content {
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.6;
       white-space: pre-wrap;
       word-break: break-word;
+      padding-left: 32px;
     }
 
+    .message-content p {
+      margin-bottom: 12px;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 코드 블록 */
     .message-content code {
       background: var(--vscode-textCodeBlock-background);
-      padding: 1px 4px;
-      border-radius: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
       font-family: var(--vscode-editor-font-family);
-      font-size: 0.9em;
+      font-size: 12px;
+    }
+
+    .code-block {
+      position: relative;
+      margin: 12px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--vscode-textCodeBlock-background);
+    }
+
+    .code-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .code-block-lang {
+      text-transform: lowercase;
+    }
+
+    .code-block-copy {
+      background: transparent;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      transition: all 0.15s ease;
+    }
+
+    .code-block-copy:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--vscode-foreground);
     }
 
     .message-content pre {
-      background: var(--vscode-textCodeBlock-background);
-      padding: 8px;
-      border-radius: 4px;
+      margin: 0;
+      padding: 12px;
       overflow-x: auto;
-      margin: 6px 0;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .message-content pre code {
       background: transparent;
       padding: 0;
+      border-radius: 0;
     }
 
-    /* 스트리밍 커서 */
-    .streaming-cursor {
-      display: inline-block;
-      width: 6px;
-      height: 14px;
-      background: var(--vscode-editorCursor-foreground);
-      animation: blink 1s infinite;
-      vertical-align: middle;
-      margin-left: 2px;
+    /* 스트리밍 인디케이터 */
+    .streaming-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 4px;
     }
 
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
+    .streaming-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--vscode-foreground);
+      border-radius: 50%;
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+
+    .streaming-dot:nth-child(1) { animation-delay: 0s; }
+    .streaming-dot:nth-child(2) { animation-delay: 0.2s; }
+    .streaming-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
     }
 
     /* 입력 영역 */
     .input-area {
-      padding: 12px;
+      padding: 16px;
       border-top: 1px solid var(--vscode-panel-border);
+      background: var(--vscode-editor-background);
     }
 
     .input-container {
+      position: relative;
       display: flex;
-      flex-direction: column;
+      align-items: flex-end;
       gap: 8px;
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input-container:focus-within {
+      border-color: var(--vscode-focusBorder);
+      box-shadow: 0 0 0 1px var(--vscode-focusBorder);
     }
 
     textarea {
-      width: 100%;
-      min-height: 60px;
-      max-height: 150px;
-      padding: 8px;
-      border: 1px solid var(--vscode-input-border);
-      border-radius: 4px;
-      background: var(--vscode-input-background);
+      flex: 1;
+      min-height: 24px;
+      max-height: 120px;
+      padding: 4px 0;
+      border: none;
+      background: transparent;
       color: var(--vscode-input-foreground);
       font-family: var(--vscode-font-family);
       font-size: 13px;
+      line-height: 1.5;
       resize: none;
       outline: none;
-    }
-
-    textarea:focus {
-      border-color: var(--vscode-focusBorder);
     }
 
     textarea::placeholder {
@@ -388,21 +502,30 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       background: var(--vscode-button-background);
       color: var(--vscode-button-foreground);
       border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      align-self: flex-end;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
     }
 
-    .send-btn:hover {
+    .send-btn:hover:not(:disabled) {
       background: var(--vscode-button-hoverBackground);
+      transform: scale(1.05);
     }
 
     .send-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 16px;
+      height: 16px;
     }
 
     /* 빈 상태 */
@@ -414,31 +537,88 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       height: 100%;
       color: var(--vscode-descriptionForeground);
       text-align: center;
-      padding: 20px;
+      padding: 32px 20px;
+    }
+
+    .empty-state-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+      margin-bottom: 8px;
     }
 
     .empty-state p {
       font-size: 12px;
       opacity: 0.8;
+      line-height: 1.5;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .suggestion-btn {
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      color: var(--vscode-foreground);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .suggestion-btn:hover {
+      background: var(--vscode-list-hoverBackground);
+      border-color: var(--vscode-focusBorder);
     }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="header-left">
-      <span class="header-title">Chat</span>
+      <span class="header-title">Timely Chat</span>
       <select class="model-select" id="modelSelect" title="모델 선택"></select>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="newChatBtn" title="새 대화 (Ctrl+Alt+N)">+</button>
-      <button class="icon-btn" id="openEditorBtn" title="새 창에서 열기 (Ctrl+Alt+C)">⧉</button>
-      <button class="icon-btn" id="closeBtn" title="닫기">×</button>
+      <button class="icon-btn" id="newChatBtn" title="새 대화">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="openEditorBtn" title="새 창에서 열기">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M10 2h4v4M6 10l8-8M14 9v5a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
     </div>
   </div>
 
   <div class="messages" id="messages">
     <div class="empty-state" id="emptyState">
-      <p>메시지를 입력하여<br>대화를 시작하세요</p>
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h3>Timely Chat</h3>
+      <p>AI와 대화를 시작해보세요</p>
+      <div class="suggestions">
+        <button class="suggestion-btn" data-prompt="이 코드를 설명해줘">"이 코드를 설명해줘"</button>
+        <button class="suggestion-btn" data-prompt="버그를 찾아줘">"버그를 찾아줘"</button>
+        <button class="suggestion-btn" data-prompt="리팩토링 제안해줘">"리팩토링 제안해줘"</button>
+      </div>
     </div>
   </div>
 
@@ -446,10 +626,15 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
     <div class="input-container">
       <textarea
         id="messageInput"
-        placeholder="메시지 입력... (Enter로 전송)"
-        rows="2"
+        placeholder="메시지를 입력하세요..."
+        rows="1"
       ></textarea>
-      <button class="send-btn" id="sendBtn">전송</button>
+      <button class="send-btn" id="sendBtn" title="전송 (Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"></polygon>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -461,8 +646,8 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
     const sendBtn = document.getElementById('sendBtn');
     const newChatBtn = document.getElementById('newChatBtn');
     const openEditorBtn = document.getElementById('openEditorBtn');
-    const closeBtn = document.getElementById('closeBtn');
     const modelSelect = document.getElementById('modelSelect');
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
 
     let messages = [];
     let isStreaming = false;
@@ -487,15 +672,19 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
 
     function createMessageElement(msg) {
       const div = document.createElement('div');
-      div.className = 'message';
+      div.className = 'message ' + msg.role;
       div.id = 'msg-' + msg.id;
 
-      const roleLabel = msg.role === 'user' ? 'User' : 'Assistant';
-      const roleClass = msg.role;
+      const avatar = msg.role === 'user' ? 'U' : 'AI';
+      const roleLabel = msg.role === 'user' ? 'You' : 'Assistant';
+      const streamingIndicator = msg.isStreaming ? '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>' : '';
 
       div.innerHTML = \`
-        <div class="message-role \${roleClass}">\${roleLabel}</div>
-        <div class="message-content" id="content-\${msg.id}">\${formatContent(msg.content)}\${msg.isStreaming ? '<span class="streaming-cursor"></span>' : ''}</div>
+        <div class="message-header">
+          <div class="message-avatar \${msg.role}">\${avatar}</div>
+          <span class="message-role">\${roleLabel}</span>
+        </div>
+        <div class="message-content" id="content-\${msg.id}">\${formatContent(msg.content)}\${streamingIndicator}</div>
       \`;
 
       return div;
@@ -503,28 +692,66 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
 
     function formatContent(content) {
       if (!content) return '';
-      content = content.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, '<pre><code>$2</code></pre>');
+
+      // 코드 블록을 헤더가 있는 형태로 변환
+      content = content.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, (match, lang, code) => {
+        const language = lang || 'code';
+        return \`<div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">\${language}</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>\${escapeHtml(code)}</code></pre>
+        </div>\`;
+      });
+
+      // 인라인 코드
       content = content.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+
+      // 줄바꿈 (코드 블록 외부만)
       content = content.replace(/\\n/g, '<br>');
+
       return content;
     }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const code = codeBlock.querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+    window.copyCode = copyCode;
 
     function scrollToBottom() {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text || isStreaming) return;
+    function autoResize() {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    }
+
+    function sendMessage(text) {
+      const msgText = text || messageInput.value.trim();
+      if (!msgText || isStreaming) return;
 
       isStreaming = true;
       sendBtn.disabled = true;
       messageInput.value = '';
+      autoResize();
 
-      vscode.postMessage({ type: 'sendMessage', text });
+      vscode.postMessage({ type: 'sendMessage', text: msgText });
     }
 
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', () => sendMessage());
 
     messageInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -532,6 +759,8 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
         sendMessage();
       }
     });
+
+    messageInput.addEventListener('input', autoResize);
 
     newChatBtn.addEventListener('click', () => {
       vscode.postMessage({ type: 'newChat' });
@@ -541,12 +770,15 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       vscode.postMessage({ type: 'openInEditor' });
     });
 
-    closeBtn.addEventListener('click', () => {
-      vscode.postMessage({ type: 'close' });
-    });
-
     modelSelect.addEventListener('change', (e) => {
       vscode.postMessage({ type: 'changeModel', model: e.target.value });
+    });
+
+    suggestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prompt = btn.getAttribute('data-prompt');
+        sendMessage(prompt);
+      });
     });
 
     window.addEventListener('message', (event) => {
@@ -572,7 +804,7 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
             const msg = messages.find(m => m.id === data.messageId);
             if (msg) {
               msg.content += data.token;
-              contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-cursor"></span>';
+              contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>';
               scrollToBottom();
             }
           }
@@ -597,12 +829,18 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
           renderMessages();
           break;
 
+        case 'setInput':
+          messageInput.value = data.text;
+          autoResize();
+          messageInput.focus();
+          break;
+
         case 'error':
           isStreaming = false;
           sendBtn.disabled = false;
           const lastMsg = messages[messages.length - 1];
           if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-            lastMsg.content = '⚠️ ' + data.message;
+            lastMsg.content = '오류가 발생했습니다: ' + data.message;
             lastMsg.isStreaming = false;
             const errEl = document.getElementById('content-' + lastMsg.id);
             if (errEl) {

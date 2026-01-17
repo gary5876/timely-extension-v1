@@ -266,7 +266,7 @@ export class TimelyChatPanel {
 
     body {
       font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
+      font-size: 13px;
       color: var(--vscode-foreground);
       background: var(--vscode-editor-background);
       height: 100vh;
@@ -279,73 +279,142 @@ export class TimelyChatPanel {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
+      padding: 12px 20px;
       border-bottom: 1px solid var(--vscode-panel-border);
-      background: var(--vscode-sideBar-background);
+      background: var(--vscode-editor-background);
+      min-height: 52px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
     .header-title {
       font-weight: 600;
       font-size: 14px;
+      color: var(--vscode-foreground);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .model-select {
       background: var(--vscode-dropdown-background);
       color: var(--vscode-dropdown-foreground);
       border: 1px solid var(--vscode-dropdown-border);
-      padding: 4px 8px;
-      border-radius: 4px;
+      border-radius: 6px;
+      padding: 6px 12px;
       font-size: 12px;
       cursor: pointer;
-      max-width: 150px;
+      outline: none;
+      max-width: 180px;
+      transition: border-color 0.15s ease;
+    }
+
+    .model-select:hover {
+      border-color: var(--vscode-focusBorder);
     }
 
     .model-select:focus {
-      outline: 1px solid var(--vscode-focusBorder);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
+      border-color: var(--vscode-focusBorder);
     }
 
     /* 메시지 영역 */
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 0;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--vscode-scrollbarSlider-background);
+      border-radius: 4px;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+      background: var(--vscode-scrollbarSlider-hoverBackground);
     }
 
     .message {
-      margin-bottom: 24px;
+      padding: 20px 24px;
       animation: fadeIn 0.2s ease;
     }
 
+    .message.user {
+      background: var(--vscode-editor-background);
+    }
+
+    .message.assistant {
+      background: var(--vscode-sideBar-background, rgba(0,0,0,0.05));
+    }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .message-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .message-avatar.user {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+
+    .message-avatar.assistant {
+      background: linear-gradient(135deg, #da7756 0%, #d4a574 100%);
+      color: white;
     }
 
     .message-role {
       font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 8px;
+      font-size: 14px;
       color: var(--vscode-foreground);
     }
 
-    .message-role.user {
-      color: var(--vscode-textLink-foreground);
-    }
-
-    .message-role.assistant {
-      color: var(--vscode-gitDecoration-addedResourceForeground, #4ec9b0);
-    }
-
     .message-content {
-      line-height: 1.6;
+      font-size: 14px;
+      line-height: 1.7;
       white-space: pre-wrap;
       word-break: break-word;
+      padding-left: 38px;
+    }
+
+    .message-content p {
+      margin-bottom: 14px;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
     }
 
     /* 코드 블록 */
@@ -354,73 +423,124 @@ export class TimelyChatPanel {
       padding: 2px 6px;
       border-radius: 4px;
       font-family: var(--vscode-editor-font-family);
-      font-size: 0.9em;
+      font-size: 13px;
+    }
+
+    .code-block {
+      position: relative;
+      margin: 14px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--vscode-textCodeBlock-background);
+    }
+
+    .code-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.2);
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .code-block-lang {
+      text-transform: lowercase;
+    }
+
+    .code-block-copy {
+      background: transparent;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: all 0.15s ease;
+    }
+
+    .code-block-copy:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--vscode-foreground);
     }
 
     .message-content pre {
-      background: var(--vscode-textCodeBlock-background);
-      padding: 12px;
-      border-radius: 6px;
+      margin: 0;
+      padding: 14px;
       overflow-x: auto;
-      margin: 8px 0;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .message-content pre code {
       background: transparent;
       padding: 0;
+      border-radius: 0;
     }
 
-    /* 스트리밍 커서 */
-    .streaming-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 16px;
-      background: var(--vscode-editorCursor-foreground);
-      animation: blink 1s infinite;
-      vertical-align: middle;
-      margin-left: 2px;
+    /* 스트리밍 인디케이터 */
+    .streaming-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 4px;
     }
 
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
+    .streaming-dot {
+      width: 5px;
+      height: 5px;
+      background: var(--vscode-foreground);
+      border-radius: 50%;
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+
+    .streaming-dot:nth-child(1) { animation-delay: 0s; }
+    .streaming-dot:nth-child(2) { animation-delay: 0.2s; }
+    .streaming-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
     }
 
     /* 입력 영역 */
     .input-area {
-      padding: 16px;
+      padding: 20px 24px;
       border-top: 1px solid var(--vscode-panel-border);
-      background: var(--vscode-sideBar-background);
+      background: var(--vscode-editor-background);
     }
 
     .input-container {
+      position: relative;
       display: flex;
-      gap: 8px;
       align-items: flex-end;
+      gap: 12px;
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .input-wrapper {
-      flex: 1;
-      position: relative;
+    .input-container:focus-within {
+      border-color: var(--vscode-focusBorder);
+      box-shadow: 0 0 0 1px var(--vscode-focusBorder);
     }
 
     textarea {
-      width: 100%;
-      min-height: 44px;
-      max-height: 200px;
-      padding: 12px;
-      border: 1px solid var(--vscode-input-border);
-      border-radius: 6px;
-      background: var(--vscode-input-background);
+      flex: 1;
+      min-height: 24px;
+      max-height: 150px;
+      padding: 4px 0;
+      border: none;
+      background: transparent;
       color: var(--vscode-input-foreground);
       font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
+      font-size: 14px;
+      line-height: 1.5;
       resize: none;
       outline: none;
-    }
-
-    textarea:focus {
-      border-color: var(--vscode-focusBorder);
     }
 
     textarea::placeholder {
@@ -431,20 +551,30 @@ export class TimelyChatPanel {
       background: var(--vscode-button-background);
       color: var(--vscode-button-foreground);
       border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 500;
-      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
     }
 
-    .send-btn:hover {
+    .send-btn:hover:not(:disabled) {
       background: var(--vscode-button-hoverBackground);
+      transform: scale(1.05);
     }
 
     .send-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 18px;
+      height: 18px;
     }
 
     /* 빈 상태 */
@@ -456,34 +586,60 @@ export class TimelyChatPanel {
       height: 100%;
       color: var(--vscode-descriptionForeground);
       text-align: center;
-      padding: 40px;
+      padding: 40px 24px;
+    }
+
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
     }
 
     .empty-state h2 {
       font-size: 18px;
-      margin-bottom: 8px;
+      font-weight: 600;
       color: var(--vscode-foreground);
+      margin-bottom: 10px;
     }
 
     .empty-state p {
-      font-size: 13px;
+      font-size: 14px;
       opacity: 0.8;
+      line-height: 1.5;
+      margin-bottom: 24px;
     }
 
-    /* 에러 메시지 */
-    .error {
-      background: var(--vscode-inputValidation-errorBackground);
-      border: 1px solid var(--vscode-inputValidation-errorBorder);
-      color: var(--vscode-errorForeground);
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 16px;
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 500px;
+    }
+
+    .suggestion-btn {
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      color: var(--vscode-foreground);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+
+    .suggestion-btn:hover {
+      background: var(--vscode-list-hoverBackground);
+      border-color: var(--vscode-focusBorder);
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <span class="header-title">Timely Chat</span>
+    <div class="header-left">
+      <span class="header-title">Timely Chat</span>
+    </div>
     <div class="header-actions">
       <select class="model-select" id="modelSelect">
         <option>로딩중...</option>
@@ -493,21 +649,33 @@ export class TimelyChatPanel {
 
   <div class="messages" id="messages">
     <div class="empty-state" id="emptyState">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <h2>Timely Chat</h2>
-      <p>메시지를 입력하여 대화를 시작하세요</p>
+      <p>AI와 대화를 시작해보세요</p>
+      <div class="suggestions">
+        <button class="suggestion-btn" data-prompt="이 코드를 설명해줘">"이 코드를 설명해줘"</button>
+        <button class="suggestion-btn" data-prompt="버그를 찾아줘">"버그를 찾아줘"</button>
+        <button class="suggestion-btn" data-prompt="리팩토링 제안해줘">"리팩토링 제안해줘"</button>
+        <button class="suggestion-btn" data-prompt="테스트 코드 작성해줘">"테스트 코드 작성해줘"</button>
+      </div>
     </div>
   </div>
 
   <div class="input-area">
     <div class="input-container">
-      <div class="input-wrapper">
-        <textarea
-          id="messageInput"
-          placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
-          rows="1"
-        ></textarea>
-      </div>
-      <button class="send-btn" id="sendBtn">전송</button>
+      <textarea
+        id="messageInput"
+        placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
+        rows="1"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" title="전송 (Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"></polygon>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -518,11 +686,11 @@ export class TimelyChatPanel {
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const modelSelect = document.getElementById('modelSelect');
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
 
     let messages = [];
     let isStreaming = false;
 
-    // 메시지 렌더링
     function renderMessages() {
       if (messages.length === 0) {
         emptyState.style.display = 'flex';
@@ -530,8 +698,6 @@ export class TimelyChatPanel {
       }
 
       emptyState.style.display = 'none';
-
-      // 기존 메시지 제거 (emptyState 제외)
       const existingMessages = messagesContainer.querySelectorAll('.message');
       existingMessages.forEach(el => el.remove());
 
@@ -543,63 +709,88 @@ export class TimelyChatPanel {
       scrollToBottom();
     }
 
-    // 메시지 요소 생성
     function createMessageElement(msg) {
       const div = document.createElement('div');
-      div.className = 'message';
+      div.className = 'message ' + msg.role;
       div.id = 'msg-' + msg.id;
 
-      const roleLabel = msg.role === 'user' ? 'User' : 'Assistant';
-      const roleClass = msg.role;
+      const avatar = msg.role === 'user' ? 'U' : 'AI';
+      const roleLabel = msg.role === 'user' ? 'You' : 'Assistant';
+      const streamingIndicator = msg.isStreaming ? '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>' : '';
 
       div.innerHTML = \`
-        <div class="message-role \${roleClass}">\${roleLabel}</div>
-        <div class="message-content" id="content-\${msg.id}">\${formatContent(msg.content)}\${msg.isStreaming ? '<span class="streaming-cursor"></span>' : ''}</div>
+        <div class="message-header">
+          <div class="message-avatar \${msg.role}">\${avatar}</div>
+          <span class="message-role">\${roleLabel}</span>
+        </div>
+        <div class="message-content" id="content-\${msg.id}">\${formatContent(msg.content)}\${streamingIndicator}</div>
       \`;
 
       return div;
     }
 
-    // 컨텐츠 포맷팅 (마크다운 간단 처리)
     function formatContent(content) {
       if (!content) return '';
 
-      // 코드 블록
-      content = content.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, '<pre><code>$2</code></pre>');
+      // 코드 블록을 헤더가 있는 형태로 변환
+      content = content.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, (match, lang, code) => {
+        const language = lang || 'code';
+        return \`<div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">\${language}</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>\${escapeHtml(code)}</code></pre>
+        </div>\`;
+      });
+
       // 인라인 코드
       content = content.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+
       // 줄바꿈
       content = content.replace(/\\n/g, '<br>');
 
       return content;
     }
 
-    // 스크롤 맨 아래로
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const code = codeBlock.querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+    window.copyCode = copyCode;
+
     function scrollToBottom() {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // 메시지 전송
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text || isStreaming) return;
+    function autoResize() {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+    }
+
+    function sendMessage(text) {
+      const msgText = text || messageInput.value.trim();
+      if (!msgText || isStreaming) return;
 
       isStreaming = true;
       sendBtn.disabled = true;
       messageInput.value = '';
       autoResize();
 
-      vscode.postMessage({ type: 'sendMessage', text });
+      vscode.postMessage({ type: 'sendMessage', text: msgText });
     }
 
-    // 텍스트영역 자동 높이 조절
-    function autoResize() {
-      messageInput.style.height = 'auto';
-      messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + 'px';
-    }
-
-    // 이벤트 리스너
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', () => sendMessage());
 
     messageInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -614,7 +805,13 @@ export class TimelyChatPanel {
       vscode.postMessage({ type: 'changeModel', model: e.target.value });
     });
 
-    // Extension 메시지 수신
+    suggestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prompt = btn.getAttribute('data-prompt');
+        sendMessage(prompt);
+      });
+    });
+
     window.addEventListener('message', (event) => {
       const data = event.data;
 
@@ -638,7 +835,7 @@ export class TimelyChatPanel {
             const msg = messages.find(m => m.id === data.messageId);
             if (msg) {
               msg.content += data.token;
-              contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-cursor"></span>';
+              contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>';
               scrollToBottom();
             }
           }
@@ -672,10 +869,9 @@ export class TimelyChatPanel {
         case 'error':
           isStreaming = false;
           sendBtn.disabled = false;
-          // 에러 메시지가 있는 assistant 메시지 업데이트
           const lastMsg = messages[messages.length - 1];
           if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-            lastMsg.content = '⚠️ 오류가 발생했습니다: ' + data.message;
+            lastMsg.content = '오류가 발생했습니다: ' + data.message;
             lastMsg.isStreaming = false;
             const errEl = document.getElementById('content-' + lastMsg.id);
             if (errEl) {
@@ -699,7 +895,6 @@ export class TimelyChatPanel {
       }
     });
 
-    // 준비 완료 알림
     vscode.postMessage({ type: 'ready' });
   </script>
 </body>
