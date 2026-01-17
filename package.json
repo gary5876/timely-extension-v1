@@ -2,7 +2,7 @@
   "name": "timely-chat-vscode",
   "displayName": "Timely Chat",
   "description": "Timely GPT AI Chat integration for VS Code with keyboard shortcuts, chat history, and code sharing",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "HID",
   "icon": "media/icon.png",
   "engines": {
@@ -92,18 +92,18 @@
       {
         "command": "timely-chat.openChat",
         "key": "ctrl+alt+c",
-        "mac": "cmd+alt+c"
+        "mac": "cmd+option+c"
       },
       {
         "command": "timely-chat.sendSelection",
         "key": "ctrl+alt+s",
-        "mac": "cmd+alt+s",
+        "mac": "cmd+option+s",
         "when": "editorHasSelection"
       },
       {
         "command": "timely-chat.newChat",
         "key": "ctrl+alt+n",
-        "mac": "cmd+alt+n"
+        "mac": "cmd+option+n"
       }
     ],
     "configuration": {

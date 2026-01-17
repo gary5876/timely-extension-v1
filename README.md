@@ -5,11 +5,48 @@ VSCode에서 Timely GPT AI와 대화하세요. 코드를 선택하여 AI에게 �
 ![Timely Chat](https://img.shields.io/badge/Timely-Chat-blue)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.75+-green)
 
+## 빠른 시작 가이드
+
+처음 사용하시나요? 아래 단계를 따라해보세요!
+
+### 1단계: 설치하기
+1. VS Code 왼쪽 사이드바에서 **네모 4개 아이콘** (확장) 클릭
+2. 검색창에 `Timely Chat` 입력
+3. **설치** 버튼 클릭
+
+### 2단계: API Key 설정하기
+
+**API Key 발급받기:**
+[timelygpt.co.kr](https://timelygpt.co.kr) 접속 → 왼쪽 하단 **프로필** → **설정** → **연동 키 관리**
+
+**방법 1: 간편 설정 (권장)**
+1. VS Code 왼쪽 사이드바에서 **파란 말풍선 아이콘** (Timely Chat) 클릭
+2. API Key가 없으면 입력창이 자동으로 표시됩니다
+3. 발급받은 API Key 입력 후 Enter
+
+**방법 2: 설정에서 직접 입력**
+1. [timelygpt.co.kr](https://timelygpt.co.kr)에서 API Key 발급
+2. VS Code 상단 메뉴: **파일** → **기본 설정** → **설정** 클릭
+3. 검색창에 `Timely Chat` 입력
+4. **API Key** 항목에 발급받은 키 입력
+
+### 3단계: 채팅 시작하기
+1. VS Code 왼쪽 사이드바에서 **Timely Chat 아이콘** 클릭
+2. 아래 입력창에 질문 입력
+3. **전송** 버튼 클릭 또는 `Enter` 키
+
+### 코드에 대해 질문하기
+1. 코드 파일에서 궁금한 부분을 **마우스로 드래그**하여 선택
+2. **마우스 오른쪽 클릭** → **Timely Chat: 선택한 코드 전송** 클릭
+3. 채팅창에서 질문 입력
+
+---
+
 ## 주요 기능
 
 ### AI 채팅
-- Timely GPT SDK를 통한 공식 API 연동
-- 실시간 토큰 스트리밍으로 빠른 응답 표시
+- Timely GPT를 통한 AI 대화
+- 실시간 스트리밍으로 빠른 응답 표시
 - 사이드바 또는 에디터 패널에서 대화
 
 ### 코드 공유
@@ -18,43 +55,53 @@ VSCode에서 Timely GPT AI와 대화하세요. 코드를 선택하여 AI에게 �
 
 ### 세션 관리
 - 대화 기록 유지
-- 새 대화 세션 시작 기능 (`Ctrl+Alt+N`)
+- 새 대화 세션 시작 기능
 
 ## 설치
 
-### VSCode 마켓플레이스
-```
-Ctrl+Shift+X → "Timely Chat" 검색 → 설치
-```
+### VSCode 마켓플레이스 (권장)
+1. VS Code 실행
+2. 왼쪽 사이드바 **확장** 아이콘 클릭 (네모 4개 모양)
+3. `Timely Chat` 검색
+4. **설치** 클릭
 
-### CLI로 설치
+### 터미널로 설치 (개발자용)
 ```bash
 code --install-extension HID.timely-chat-vscode
 ```
 
 ## 설정
 
-설정 (`Ctrl+,`)에서 "Timely Chat"을 검색하여 구성하세요.
+**설정 열기:** 파일 → 기본 설정 → 설정 → `Timely Chat` 검색
 
-| 설정 | 설명 | 기본값 |
-|------|------|--------|
-| `timelyChat.apiKey` | Timely GPT API Key (필수) | - |
-| `timelyChat.model` | 사용할 AI 모델 | `gpt-4.1` |
-| `timelyChat.instructions` | AI 커스텀 지시사항 | - |
+| 설정 | 설명 | 필수 |
+|------|------|------|
+| API Key | Timely GPT API Key | ✅ 필수 |
+| Model | 사용할 AI 모델 | 선택 (기본: gpt-4.1) |
+| Instructions | AI에게 줄 추가 지시사항 | 선택 |
 
 > API Key는 [timelygpt.co.kr](https://timelygpt.co.kr)에서 발급받을 수 있습니다.
 
-## 단축키
+## 사용 방법
 
-| 단축키 | macOS | 기능 |
-|--------|-------|------|
-| `Ctrl+Alt+C` | `Cmd+Alt+C` | 채팅 열기 |
-| `Ctrl+Alt+S` | `Cmd+Alt+S` | 선택한 코드 전송 |
-| `Ctrl+Alt+N` | `Cmd+Alt+N` | 새 대화 시작 |
+### 마우스로 사용하기
 
-## 명령어
+| 하고 싶은 일 | 방법 |
+|-------------|------|
+| 채팅 열기 | 왼쪽 사이드바 **Timely Chat 아이콘** 클릭 |
+| 코드 질문하기 | 코드 선택 → 우클릭 → **선택한 코드 전송** |
 
-Command Palette (`Ctrl+Shift+P`)에서 사용 가능:
+### 단축키로 사용하기 (선택사항)
+
+| Windows/Linux | macOS | 기능 |
+|---------------|-------|------|
+| `Ctrl+Alt+C` | `Cmd+Option+C` | 채팅 열기 |
+| `Ctrl+Alt+S` | `Cmd+Option+S` | 선택한 코드 전송 |
+| `Ctrl+Alt+N` | `Cmd+Option+N` | 새 대화 시작 |
+
+### 명령어로 사용하기 (선택사항)
+
+`F1` 키를 누르고 아래 명령어를 검색하세요:
 
 | 명령어 | 설명 |
 |--------|------|
