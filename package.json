@@ -2,8 +2,8 @@
   "name": "timely-chat-vscode",
   "displayName": "Timely Chat",
   "description": "Timely GPT AI Chat integration for VS Code with keyboard shortcuts, chat history, and code sharing",
-  "version": "0.0.2",
-  "publisher": "timely",
+  "version": "0.0.3",
+  "publisher": "HID",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.75.0"
@@ -23,64 +23,46 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "timely-chat",
-          "title": "Timely Chat",
-          "icon": "media/chat-icon.svg"
-        }
-      ]
-    },
-    "views": {
-      "timely-chat": [
-        {
-          "type": "webview",
-          "id": "timely-chat.sidebarView",
-          "name": "Chat"
-        }
-      ]
-    },
     "commands": [
       {
         "command": "timely-chat.openChat",
-        "title": "Timely Chat: Open Chat in Editor",
-        "icon": "$(comment-discussion)"
+        "title": "Timely Chat: 채팅 열기",
+        "icon": {
+          "light": "media/timely-icon.svg",
+          "dark": "media/timely-icon.svg"
+        }
       },
       {
         "command": "timely-chat.closeChat",
-        "title": "Timely Chat: Close Chat",
+        "title": "Timely Chat: 채팅 닫기",
         "icon": "$(close)"
       },
       {
-        "command": "timely-chat.toggleChatbot",
-        "title": "Timely Chat: Toggle Chatbot",
-        "icon": "$(robot)"
-      },
-      {
         "command": "timely-chat.configure",
-        "title": "Timely Chat: Configure Settings"
+        "title": "Timely Chat: 설정"
       },
       {
         "command": "timely-chat.sendSelection",
-        "title": "Timely Chat: Send Selection to Chat",
+        "title": "Timely Chat: 선택한 코드 전송",
         "icon": "$(comment)"
       },
       {
-        "command": "timely-chat.showHistory",
-        "title": "Timely Chat: Show Chat History",
-        "icon": "$(history)"
+        "command": "timely-chat.newChat",
+        "title": "Timely Chat: 새 대화",
+        "icon": "$(add)"
       },
       {
         "command": "timely-chat.clearHistory",
-        "title": "Timely Chat: Clear Chat History"
-      },
-      {
-        "command": "timely-chat.exportHistory",
-        "title": "Timely Chat: Export Chat History"
+        "title": "Timely Chat: 대화 기록 삭제"
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "timely-chat.openChat",
+          "group": "navigation@100"
+        }
+      ],
       "editor/context": [
         {
           "command": "timely-chat.sendSelection",
@@ -90,9 +72,19 @@
       ],
       "view/title": [
         {
+          "command": "timely-chat.newChat",
+          "when": "view == timely-chat.sidebarView",
+          "group": "navigation@1"
+        },
+        {
           "command": "timely-chat.openChat",
           "when": "view == timely-chat.sidebarView",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "timely-chat.closeChat",
+          "when": "view == timely-chat.sidebarView",
+          "group": "navigation@3"
         }
       ]
     },
@@ -100,19 +92,18 @@
       {
         "command": "timely-chat.openChat",
         "key": "ctrl+alt+c",
-        "mac": "cmd+alt+c",
-        "when": "editorTextFocus"
-      },
-      {
-        "command": "timely-chat.toggleChatbot",
-        "key": "ctrl+alt+t",
-        "mac": "cmd+alt+t"
+        "mac": "cmd+alt+c"
       },
       {
         "command": "timely-chat.sendSelection",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
         "when": "editorHasSelection"
+      },
+      {
+        "command": "timely-chat.newChat",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n"
       }
     ],
     "configuration": {
@@ -121,59 +112,18 @@
         "timelyChat.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Timely API Key"
+          "description": "Timely GPT API Key (필수)",
+          "markdownDescription": "Timely GPT API Key를 입력하세요. [API Key 발급받기](https://timelygpt.co.kr)"
         },
-        "timelyChat.spaceRefId": {
+        "timelyChat.model": {
           "type": "string",
-          "default": "",
-          "description": "Space Reference ID"
-        },
-        "timelyChat.userName": {
-          "type": "string",
-          "default": "",
-          "description": "User display name"
-        },
-        "timelyChat.providerId": {
-          "type": "string",
-          "default": "",
-          "description": "User provider ID"
-        },
-        "timelyChat.environment": {
-          "type": "string",
-          "enum": [
-            "production",
-            "staging"
-          ],
-          "default": "production",
-          "description": "API Environment"
-        },
-        "timelyChat.serviceName": {
-          "type": "string",
-          "default": "Timely Chat",
-          "description": "Service name displayed in chat"
-        },
-        "timelyChat.avatarIcon": {
-          "type": "string",
-          "default": "",
-          "description": "Avatar icon URL"
-        },
-        "timelyChat.chatbotIcon": {
-          "type": "string",
-          "default": "",
-          "description": "Chatbot icon URL"
-        },
-        "timelyChat.faq": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Frequently Asked Questions"
+          "default": "gpt-4.1",
+          "description": "사용할 AI 모델"
         },
         "timelyChat.instructions": {
           "type": "string",
           "default": "",
-          "description": "Additional chatbot instructions"
+          "description": "AI에게 전달할 커스텀 지시사항 (선택)"
         }
       }
     }
@@ -193,5 +143,8 @@
     "@vscode/vsce": "^3.7.1",
     "eslint": "^8.45.0",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@timely/gpt-sdk": "github:timely-hub/timely-gpt-sdk"
   }
 }

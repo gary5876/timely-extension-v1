@@ -8,7 +8,13 @@
       "Bash(npm run lint)",
       "Bash(vsce package:*)",
       "Bash(npx @vscode/vsce package:*)",
-      "Bash(node ./node_modules/@vscode/vsce/vsce package:*)"
+      "Bash(node ./node_modules/@vscode/vsce/vsce package:*)",
+      "Bash(test:*)",
+      "Bash(npx vsce package)",
+      "Bash(npx vsce publish)",
+      "Bash(ls -la \"c:\\\\Users\\\\jerry\\\\Desktop\\\\hobby\\\\extension\\\\media\"\" 2>/dev/null || dir \"c:UsersjerryDesktophobbyextensionmedia \")",
+      "Read(//c/Users/jerry/.vscode/extensions/**)",
+      "Bash(cat:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jerry\\Desktop\\hobby\\extension"

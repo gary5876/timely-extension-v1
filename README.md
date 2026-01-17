@@ -1,120 +1,152 @@
 # Timely Chat for VS Code
 
-VS Code에서 Timely GPT AI와 대화하세요. 코드를 선택하여 AI에게 질문하고, 대화 기록을 관리할 수 있습니다.
+VSCode에서 Timely GPT AI와 대화하세요. 코드를 선택하여 AI에게 질문하고, 실시간 스트리밍으로 답변을 받을 수 있습니다.
 
 ![Timely Chat](https://img.shields.io/badge/Timely-Chat-blue)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.75+-green)
 
-## Features
+## 주요 기능
 
-### AI Chat Integration
-- 사이드바 또는 에디터 패널에서 Timely GPT AI와 대화
-- 실시간 AI 응답
+### AI 채팅
+- Timely GPT SDK를 통한 공식 API 연동
+- 실시간 토큰 스트리밍으로 빠른 응답 표시
+- 사이드바 또는 에디터 패널에서 대화
 
-### Code Sharing
+### 코드 공유
 - 코드를 선택하고 바로 AI에게 질문
 - 파일명, 프로그래밍 언어 정보 자동 포함
 
-### Chat History
-- 대화 내역 자동 저장
-- 이전 세션 조회 및 JSON으로 내보내기
+### 세션 관리
+- 대화 기록 유지
+- 새 대화 세션 시작 기능 (`Ctrl+Alt+N`)
 
-### Status Bar
-- 연결 상태 실시간 표시
-- 클릭하여 빠르게 설정 열기
+## 설치
 
-## Installation
+### VSCode 마켓플레이스
+```
+Ctrl+Shift+X → "Timely Chat" 검색 → 설치
+```
 
-1. VS Code에서 Extensions 탭 열기 (`Ctrl+Shift+X`)
-2. "Timely Chat" 검색
-3. Install 클릭
+### CLI로 설치
+```bash
+code --install-extension HID.timely-chat-vscode
+```
 
-## Requirements
-
-사용하려면 Timely 서비스 계정이 필요합니다:
-- API Key
-- Space Reference ID
-- Provider ID
-
-## Configuration
+## 설정
 
 설정 (`Ctrl+,`)에서 "Timely Chat"을 검색하여 구성하세요.
 
-### Required Settings
+| 설정 | 설명 | 기본값 |
+|------|------|--------|
+| `timelyChat.apiKey` | Timely GPT API Key (필수) | - |
+| `timelyChat.model` | 사용할 AI 모델 | `gpt-4.1` |
+| `timelyChat.instructions` | AI 커스텀 지시사항 | - |
 
-| 설정 | 설명 |
-|------|------|
-| `timelyChat.apiKey` | Timely API 키 |
-| `timelyChat.spaceRefId` | Space Reference ID |
-| `timelyChat.userName` | 사용자 표시명 |
-| `timelyChat.providerId` | 고유 사용자 식별자 |
+> API Key는 [timelygpt.co.kr](https://timelygpt.co.kr)에서 발급받을 수 있습니다.
 
-### Optional Settings
+## 단축키
 
-| 설정 | 기본값 | 설명 |
-|------|--------|------|
-| `timelyChat.environment` | `production` | API 환경 (production/staging) |
-| `timelyChat.serviceName` | `Timely Chat` | 채팅에서 표시될 서비스명 |
-| `timelyChat.avatarIcon` | - | 사용자 아바타 아이콘 URL |
-| `timelyChat.chatbotIcon` | - | 챗봇 아이콘 URL |
-| `timelyChat.faq` | `[]` | 자주 묻는 질문 목록 |
-| `timelyChat.instructions` | - | 챗봇 동작 지시사항 |
-
-## Usage
-
-### Keyboard Shortcuts
-
-| 단축키 | macOS | 설명 |
+| 단축키 | macOS | 기능 |
 |--------|-------|------|
-| `Ctrl+Alt+C` | `Cmd+Alt+C` | 에디터에서 채팅 열기 |
-| `Ctrl+Alt+T` | `Cmd+Alt+T` | 챗봇 토글 |
-| `Ctrl+Alt+S` | `Cmd+Alt+S` | 선택한 코드를 채팅으로 전송 |
+| `Ctrl+Alt+C` | `Cmd+Alt+C` | 채팅 열기 |
+| `Ctrl+Alt+S` | `Cmd+Alt+S` | 선택한 코드 전송 |
+| `Ctrl+Alt+N` | `Cmd+Alt+N` | 새 대화 시작 |
 
-### Commands
+## 명령어
 
-Command Palette (`Ctrl+Shift+P`)에서 "Timely Chat"을 입력하여 모든 명령어를 확인할 수 있습니다:
+Command Palette (`Ctrl+Shift+P`)에서 사용 가능:
 
-- **Open Chat in Editor**: 에디터 영역에서 채팅 열기
-- **Toggle Chatbot**: 챗봇 토글
-- **Send Selection to Chat**: 선택한 코드를 채팅으로 전송
-- **Show Chat History**: 이전 채팅 세션 보기
-- **Clear Chat History**: 채팅 기록 삭제
-- **Export Chat History**: 채팅 기록 JSON으로 내보내기
-- **Configure Settings**: 설정 열기
+| 명령어 | 설명 |
+|--------|------|
+| `Timely Chat: 채팅 열기` | 에디터에서 채팅 패널 열기 |
+| `Timely Chat: 채팅 닫기` | 채팅 패널 닫기 |
+| `Timely Chat: 선택한 코드 전송` | 현재 선택한 코드를 채팅으로 전송 |
+| `Timely Chat: 새 대화` | 새로운 대화 세션 시작 |
+| `Timely Chat: 대화 기록 삭제` | 현재 세션 대화 삭제 |
+| `Timely Chat: 설정` | 설정 화면 열기 |
 
-### Context Menu
+## CLI 도구
 
-코드를 선택한 후 우클릭하면 "Timely Chat: Send Selection to Chat" 메뉴가 나타납니다.
+터미널에서 바로 Timely Chat을 실행할 수 있습니다.
 
-## Examples
+```bash
+# 설치
+cd cli && npm install -g .
 
-### 코드에 대해 질문하기
+# 실행
+timely
+# 또는
+timely-chat
+```
 
-1. 코드 선택
-2. `Ctrl+Alt+S` 누르기 (또는 우클릭 → Send Selection to Chat)
-3. AI가 선택한 코드에 대해 답변
+## 프로젝트 구조
 
-### 사이드바에서 채팅
+```
+├── src/
+│   ├── extension.ts              # 확장 진입점
+│   ├── providers/
+│   │   ├── TimelyChatPanel.ts    # 에디터 채팅 패널
+│   │   └── TimelyViewProvider.ts # 사이드바 뷰
+│   ├── services/
+│   │   └── chatService.ts        # Timely GPT SDK 통신
+│   ├── types/
+│   │   └── index.ts              # 타입 정의
+│   └── utils/
+│       ├── config.ts             # 설정 관리
+│       └── session.ts            # 세션 관리
+├── cli/                          # CLI 도구
+├── media/                        # 아이콘 등 리소스
+└── package.json
+```
 
-1. 액티비티 바에서 Timely Chat 아이콘 클릭
-2. 채팅 시작
+## 변경 이력
 
-### 에디터 패널에서 채팅
+### v0.0.2 (현재)
 
-1. `Ctrl+Alt+C` 누르기
-2. 전체 화면으로 채팅
+**새로운 기능:**
+- `@timely/gpt-sdk` 패키지를 사용한 공식 SDK 연동
+- 실시간 토큰 스트리밍으로 응답 표시
+- 세션 ID 기반 대화 관리 시스템
+- CLI 도구 추가 (`timely`, `timely-chat` 명령어)
+- 새 대화 시작 기능 (`Ctrl+Alt+N`)
 
-## Troubleshooting
+**변경사항:**
+- 채팅 서비스를 별도 모듈로 분리 (`chatService.ts`)
+- 모든 명령어와 메뉴 한글화
+- 설정 항목 간소화 (API Key, 모델, 지시사항만 필요)
 
-### "설정이 필요합니다" 메시지가 표시됨
-→ 필수 설정(API Key, Space ID, User Name, Provider ID)을 모두 입력했는지 확인하세요.
+**제거된 기능:**
+- `toggleChatbot` 명령어
+- `showHistory`, `exportHistory` 명령어
+- `spaceRefId`, `providerId`, `userName` 등 불필요한 설정 항목
 
-### 인증 실패
-→ API Key와 Space Reference ID가 올바른지 확인하세요.
-→ 네트워크 연결을 확인하세요.
+### v0.0.1
+
+- 초기 릴리스
+
+## 개발
+
+```bash
+# 의존성 설치
+npm install
+
+# 컴파일
+npm run compile
+
+# 개발 모드 (watch)
+npm run watch
+
+# 린트
+npm run lint
+```
+
+## 문제 해결
+
+### "Client not initialized" 오류
+→ 설정에서 API Key를 입력했는지 확인하세요.
 
 ### 채팅이 로드되지 않음
-→ 인터넷 연결을 확인하세요 (SDK가 CDN에서 로드됨).
+→ 인터넷 연결을 확인하세요.
 → VS Code를 재시작해 보세요.
 
 ## Privacy

@@ -3,3 +3,9 @@ out
 *.vsix
 .vscode-test/
 .DS_Store
+
+# 개인 설정
+.claude/
+
+# 테스트 스크립트 (API 키 포함)
+test-token.js

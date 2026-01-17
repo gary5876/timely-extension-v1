@@ -1,0 +1,22 @@
+{
+  "name": "timely-chat-cli",
+  "version": "0.0.2",
+  "description": "Timely Chat CLI - VSCode에서 Timely GPT AI 채팅 시작",
+  "bin": {
+    "timely": "./index.js",
+    "timely-chat": "./index.js"
+  },
+  "keywords": [
+    "timely",
+    "chat",
+    "ai",
+    "vscode",
+    "cli"
+  ],
+  "author": "HID",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timely-hub/timely-chat-vscode"
+  }
+}
