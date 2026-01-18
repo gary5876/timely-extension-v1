@@ -186,6 +186,22 @@ export class TimelyChatPanel {
           token,
         });
       },
+      onTaskStart: (taskId: string, title: string, description: string) => {
+        // Task 블록 시작 알림
+        this._panel.webview.postMessage({
+          type: 'taskStart',
+          taskId,
+          title,
+          description,
+        });
+      },
+      onTaskComplete: (taskId: string) => {
+        // Task 완료 알림
+        this._panel.webview.postMessage({
+          type: 'taskComplete',
+          taskId,
+        });
+      },
       onToolCall: (toolCall: ToolCall) => {
         // 도구 실행 시작 알림
         this._panel.webview.postMessage({
@@ -490,38 +506,46 @@ export class TimelyChatPanel {
       position: relative;
       margin: 14px 0;
       border-radius: 8px;
-      overflow: hidden;
       background: var(--vscode-textCodeBlock-background);
+      overflow: hidden;
     }
 
     .code-block-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      padding: 10px 14px;
+      padding: 6px 10px;
       background: rgba(0,0,0,0.2);
-      font-size: 12px;
-      color: var(--vscode-descriptionForeground);
-    }
-
-    .code-block-lang {
-      text-transform: lowercase;
     }
 
     .code-block-copy {
       background: transparent;
       border: none;
-      color: var(--vscode-descriptionForeground);
+      color: #888;
       cursor: pointer;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.15s ease;
     }
 
     .code-block-copy:hover {
       background: rgba(255,255,255,0.1);
       color: var(--vscode-foreground);
+    }
+
+    .code-block-copy svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      fill: #888;
+    }
+
+    .code-block-copy:hover svg {
+      fill: var(--vscode-foreground);
     }
 
     .message-content pre {
@@ -564,7 +588,273 @@ export class TimelyChatPanel {
       40% { opacity: 1; transform: scale(1); }
     }
 
-    /* 도구 호출 그룹 컨테이너 */
+    /* Task 블록 (Claude Code 스타일) */
+    .task-block {
+      margin: 12px 0;
+      padding: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+      background: rgba(99, 102, 241, 0.04);
+      border-radius: 8px 8px 0 0;
+    }
+
+    .task-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+    }
+
+    .task-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+      flex: 1;
+    }
+
+    .task-status {
+      font-size: 10px;
+      color: var(--vscode-descriptionForeground);
+      padding: 2px 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+    }
+
+    .task-body {
+      padding: 12px 14px;
+    }
+
+    /* 타임라인 컨테이너 */
+    .task-tools {
+      position: relative;
+      margin-left: 10px;
+      padding-left: 20px;
+      border-left: 2px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* 도구 호출 항목 */
+    .tool-item {
+      position: relative;
+      padding: 8px 12px;
+      margin: 4px 0;
+      font-size: 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .tool-item:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .tool-item::before {
+      content: '';
+      position: absolute;
+      left: -26px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--vscode-editor-background);
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .tool-item.running::before {
+      border-color: #6366f1;
+      background: #6366f1;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+      animation: pulse-glow 1.5s infinite;
+    }
+
+    .tool-item.success::before {
+      border-color: #22c55e;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+    }
+
+    .tool-item.error::before {
+      border-color: #ef4444;
+      background: #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+      }
+      50% {
+        opacity: 0.7;
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
+      }
+    }
+
+    .tool-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tool-info-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #a78bfa;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .tool-type-icon {
+      font-size: 12px;
+    }
+
+    .tool-detail {
+      color: var(--vscode-foreground);
+      word-break: break-word;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .tool-detail code {
+      background: rgba(99, 102, 241, 0.1);
+      color: #c4b5fd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 11px;
+    }
+
+    .tool-param {
+      color: var(--vscode-descriptionForeground);
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    .tool-result {
+      color: var(--vscode-descriptionForeground);
+      font-size: 11px;
+      margin-top: 4px;
+      padding-left: 2px;
+      opacity: 0.8;
+    }
+
+    .tool-result.error {
+      color: #f87171;
+    }
+
+    .tool-result.success {
+      color: #4ade80;
+    }
+
+    /* Computing 상태 - 타임라인 끝에 표시 */
+    .computing-status {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      margin: 8px 0 4px 0;
+      color: #a78bfa;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .computing-status::before {
+      content: '';
+      position: absolute;
+      left: -26px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6366f1;
+      border: 2px solid #6366f1;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      animation: pulse-glow 1.5s infinite;
+    }
+
+    .timely-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      animation: spin 1.2s linear infinite;
+    }
+
+    .timely-spinner svg {
+      width: 20px;
+      height: 20px;
+      filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.5));
+    }
+
+    .computing-text {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .computing-dots {
+      display: inline-flex;
+      gap: 2px;
+    }
+
+    .computing-dots span {
+      width: 4px;
+      height: 4px;
+      background: #a78bfa;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .computing-dots span:nth-child(1) { animation-delay: 0s; }
+    .computing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .computing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-4px); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 최종 응답 스타일 */
+    .final-response {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* 레거시 도구 그룹 (하위 호환) */
     .tool-group {
       margin: 12px 24px;
       background: var(--vscode-textBlockQuote-background);
@@ -668,10 +958,6 @@ export class TimelyChatPanel {
 
     .tool-status.error {
       color: var(--vscode-testing-iconFailed);
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     /* Diff 블록 */
@@ -979,13 +1265,43 @@ export class TimelyChatPanel {
     function formatContent(content) {
       if (!content) return '';
 
+      // tool_call XML 태그 제거 (AI 응답에서 도구 호출 부분 숨기기)
+      content = content.replace(/<tool_call>[\\s\\S]*?<\\/tool_call>/g, '');
+
+      // tool_result XML 태그 제거
+      content = content.replace(/<tool_result>[\\s\\S]*?<\\/tool_result>/g, '');
+
+      // 스트리밍 중 불완전한 tool_call 태그도 제거 (시작은 있지만 끝이 없는 경우)
+      content = content.replace(/<tool_call>[\\s\\S]*$/g, '');
+      content = content.replace(/<tool_result>[\\s\\S]*$/g, '');
+
+      // 부분적으로 입력 중인 시작 태그도 제거 (예: <tool_, <tool_ca 등)
+      content = content.replace(/<tool_[a-z]*$/gi, '');
+      content = content.replace(/<\\/tool_[a-z]*$/gi, '');
+
+      // 내부 태그도 제거 (<name>, <parameters> 등 - 혹시 별도로 나타날 경우)
+      content = content.replace(/<name>[\\s\\S]*?<\\/name>/g, '');
+      content = content.replace(/<parameters>[\\s\\S]*?<\\/parameters>/g, '');
+      content = content.replace(/<name>[\\s\\S]*$/g, '');
+      content = content.replace(/<parameters>[\\s\\S]*$/g, '');
+      content = content.replace(/<\\/?name>?$/gi, '');
+      content = content.replace(/<\\/?parameters>?$/gi, '');
+
+      // 연속된 빈 줄 정리 (3개 이상의 줄바꿈을 2개로)
+      content = content.replace(/\\n{3,}/g, '\\n\\n');
+
+      // 정리 후 앞뒤 공백 제거
+      content = content.trim();
+
       // 코드 블록을 헤더가 있는 형태로 변환
       content = content.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, (match, lang, code) => {
-        const language = lang || 'code';
         return \`<div class="code-block">
           <div class="code-block-header">
-            <span class="code-block-lang">\${language}</span>
-            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+            <button class="code-block-copy" onclick="copyCode(this)" title="Copy">
+              <svg width="16" height="16" viewBox="0 0 16 16">
+                <path d="M4 4h1V3H3.5a.5.5 0 00-.5.5V5h1V4zm7 0V3H6v1h5zM4 11H3v1.5a.5.5 0 00.5.5H5v-1H4v-1zm8 0v1h-1v1h1.5a.5.5 0 00.5-.5V11h-1zm0-7h1v6h-1V4zm-8 6H3V5h1v5zM5 13v-1h6v1H5zm7-10v1h1v1h1V3.5a.5.5 0 00-.5-.5H12zM3.5 3a.5.5 0 00-.5.5V5h1V4h1V3H3.5z" fill-rule="evenodd" clip-rule="evenodd"/>
+              </svg>
+            </button>
           </div>
           <pre><code>\${escapeHtml(code)}</code></pre>
         </div>\`;
@@ -1009,9 +1325,14 @@ export class TimelyChatPanel {
     function copyCode(btn) {
       const codeBlock = btn.closest('.code-block');
       const code = codeBlock.querySelector('code').textContent;
+      const originalSvg = btn.innerHTML;
       navigator.clipboard.writeText(code).then(() => {
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        btn.style.color = 'var(--vscode-testing-iconPassed)';
+        setTimeout(() => {
+          btn.innerHTML = originalSvg;
+          btn.style.color = '';
+        }, 2000);
       });
     }
     window.copyCode = copyCode;
@@ -1082,7 +1403,11 @@ export class TimelyChatPanel {
             const msg = messages.find(m => m.id === data.messageId);
             if (msg) {
               msg.content += data.token;
-              contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>';
+              // Task 블록이 있으면 덮어쓰지 않음
+              const existingTaskBlock = contentEl.querySelector('.task-block');
+              if (!existingTaskBlock) {
+                contentEl.innerHTML = formatContent(msg.content) + '<span class="streaming-indicator"><span class="streaming-dot"></span><span class="streaming-dot"></span><span class="streaming-dot"></span></span>';
+              }
               scrollToBottom();
             }
           }
@@ -1094,7 +1419,27 @@ export class TimelyChatPanel {
             completedMsg.isStreaming = false;
             const el = document.getElementById('content-' + data.messageId);
             if (el) {
-              el.innerHTML = formatContent(completedMsg.content);
+              // Task 블록을 보존하면서 최종 텍스트만 추가
+              const existingTaskBlock = el.querySelector('.task-block');
+              const streamingIndicator = el.querySelector('.streaming-indicator');
+              if (streamingIndicator) {
+                streamingIndicator.remove();
+              }
+
+              // Task 블록이 있으면 그 뒤에 최종 응답 추가
+              if (existingTaskBlock) {
+                // 최종 텍스트가 있으면 Task 블록 뒤에 추가
+                const finalText = formatContent(completedMsg.content);
+                if (finalText.trim()) {
+                  const responseDiv = document.createElement('div');
+                  responseDiv.className = 'final-response';
+                  responseDiv.innerHTML = finalText;
+                  el.appendChild(responseDiv);
+                }
+              } else {
+                // Task 블록이 없으면 일반적으로 렌더링
+                el.innerHTML = formatContent(completedMsg.content);
+              }
             }
           }
           isStreaming = false;
@@ -1140,39 +1485,136 @@ export class TimelyChatPanel {
           });
           break;
 
+        case 'taskStart':
+          // Task 블록을 현재 스트리밍 중인 AI 메시지 내부에 생성
+          // 이미 Task 블록이 있으면 재사용 (하나의 통합 타임라인 유지)
+          const lastAssistantMsg = messagesContainer.querySelector('.message.assistant:last-child');
+          if (lastAssistantMsg) {
+            const contentEl = lastAssistantMsg.querySelector('.message-content');
+            if (contentEl) {
+              // 이미 Task 블록이 있는지 확인
+              let existingTask = contentEl.querySelector('.task-block');
+              if (existingTask) {
+                // 이미 있으면 computing 상태만 다시 보여주기
+                let computingEl = existingTask.querySelector('.computing-status');
+                if (!computingEl) {
+                  const taskBody = existingTask.querySelector('.task-body');
+                  if (taskBody) {
+                    computingEl = document.createElement('div');
+                    computingEl.className = 'computing-status';
+                    computingEl.innerHTML = '<span class="timely-spinner"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#a78bfa" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/></svg></span><span class="computing-text">Working<span class="computing-dots"><span></span><span></span><span></span></span></span>';
+                    taskBody.appendChild(computingEl);
+                  }
+                }
+                scrollToBottom();
+                break;
+              }
+
+              // 기존 스트리밍 인디케이터 제거
+              const existingIndicator = contentEl.querySelector('.streaming-indicator');
+              if (existingIndicator) {
+                existingIndicator.remove();
+              }
+
+              const taskBlock = document.createElement('div');
+              taskBlock.className = 'task-block';
+              taskBlock.id = 'task-' + data.taskId;
+              taskBlock.innerHTML = \`
+                <div class="task-header">
+                  <span class="task-icon">✦</span>
+                  <span class="task-title">Task: \${escapeHtml(data.title)}</span>
+                </div>
+                <div class="task-body">
+                  <div class="task-tools"></div>
+                  <div class="computing-status">
+                    <span class="timely-spinner"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#a78bfa" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/></svg></span>
+                    <span class="computing-text">Working<span class="computing-dots"><span></span><span></span><span></span></span></span>
+                  </div>
+                </div>
+              \`;
+              contentEl.appendChild(taskBlock);
+            }
+          }
+          scrollToBottom();
+          break;
+
+        case 'taskComplete':
+          // Task 완료 처리 - computing만 제거, completed 클래스는 추가하지 않음
+          const completedTask = document.getElementById('task-' + data.taskId);
+          if (completedTask) {
+            const computingEl = completedTask.querySelector('.computing-status');
+            if (computingEl) {
+              computingEl.remove();
+            }
+          }
+          break;
+
         case 'toolCallStart':
-          // 도구 그룹 컨테이너 찾기 또는 생성
-          let toolGroup = messagesContainer.querySelector('.tool-group:last-child:not(.completed)');
-          if (!toolGroup) {
-            toolGroup = document.createElement('div');
-            toolGroup.className = 'tool-group';
-            toolGroup.innerHTML = \`
-              <div class="tool-group-header" onclick="toggleToolGroup(this)">
-                <span class="tool-group-toggle">▼</span>
-                <span class="tool-group-title">도구 실행 중...</span>
-                <span class="tool-group-count">0</span>
-              </div>
-              <div class="tool-group-items"></div>
-            \`;
-            messagesContainer.appendChild(toolGroup);
+          // 현재 AI 메시지 내에서 Task 블록 찾기 (completed 여부 상관없이)
+          const currentAssistantMsg = messagesContainer.querySelector('.message.assistant:last-child');
+          let taskContainer = currentAssistantMsg ? currentAssistantMsg.querySelector('.task-block') : null;
+
+          if (!taskContainer && currentAssistantMsg) {
+            // Task 블록이 없으면 메시지 내에 생성
+            const msgContent = currentAssistantMsg.querySelector('.message-content');
+            if (msgContent) {
+              // 기존 스트리밍 인디케이터 제거
+              const existingIndicator = msgContent.querySelector('.streaming-indicator');
+              if (existingIndicator) {
+                existingIndicator.remove();
+              }
+
+              taskContainer = document.createElement('div');
+              taskContainer.className = 'task-block';
+              taskContainer.id = 'task-auto-' + Date.now();
+              taskContainer.innerHTML = \`
+                <div class="task-header">
+                  <span class="task-icon">✦</span>
+                  <span class="task-title">Task: 코드 탐색 중</span>
+                </div>
+                <div class="task-body">
+                  <div class="task-tools"></div>
+                  <div class="computing-status">
+                    <span class="timely-spinner"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#a78bfa" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/></svg></span>
+                    <span class="computing-text">Working<span class="computing-dots"><span></span><span></span><span></span></span></span>
+                  </div>
+                </div>
+              \`;
+              msgContent.appendChild(taskContainer);
+            }
           }
 
-          // 도구 항목 추가
-          const toolItems = toolGroup.querySelector('.tool-group-items');
-          const toolCallEl = document.createElement('div');
-          toolCallEl.className = 'tool-call';
-          toolCallEl.id = 'tool-' + data.toolCall.id;
-          toolCallEl.innerHTML = \`
-            <span class="tool-icon">⚙️</span>
-            <span class="tool-name">\${data.description}</span>
-            <span class="tool-status spinner"></span>
-          \`;
-          toolItems.appendChild(toolCallEl);
+          if (taskContainer) {
+            // computing 상태가 없으면 추가
+            let computingEl = taskContainer.querySelector('.computing-status');
+            if (!computingEl) {
+              const taskBody = taskContainer.querySelector('.task-body');
+              if (taskBody) {
+                computingEl = document.createElement('div');
+                computingEl.className = 'computing-status';
+                computingEl.innerHTML = '<span class="timely-spinner"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#a78bfa" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/></svg></span><span class="computing-text">Working<span class="computing-dots"><span></span><span></span><span></span></span></span>';
+                taskBody.appendChild(computingEl);
+              }
+            }
 
-          // 카운트 업데이트
-          const countEl = toolGroup.querySelector('.tool-group-count');
-          const count = toolItems.children.length;
-          countEl.textContent = count;
+            // 도구 항목 추가 (기존 타임라인에 계속 추가)
+            const taskTools = taskContainer.querySelector('.task-tools');
+            const toolItemEl = document.createElement('div');
+            toolItemEl.className = 'tool-item running';
+            toolItemEl.id = 'tool-' + data.toolCall.id;
+
+            // 도구 타입과 상세 정보 분리
+            const toolInfo = formatToolInfo(data.toolCall);
+            toolItemEl.innerHTML = \`
+              <div class="tool-info">
+                <div class="tool-info-row">
+                  <span class="tool-type"><span class="tool-type-icon">\${toolInfo.icon}</span> \${toolInfo.type}</span>
+                </div>
+                <div class="tool-detail">\${toolInfo.detail}</div>
+              </div>
+            \`;
+            taskTools.appendChild(toolItemEl);
+          }
 
           scrollToBottom();
           break;
@@ -1181,25 +1623,19 @@ export class TimelyChatPanel {
           // 도구 실행 완료 표시
           const toolEl = document.getElementById('tool-' + data.result.toolCallId);
           if (toolEl) {
-            const statusEl = toolEl.querySelector('.tool-status');
-            if (statusEl) {
-              statusEl.className = 'tool-status ' + (data.result.success ? 'success' : 'error');
-              statusEl.textContent = data.result.success ? '✓' : '✗';
-            }
+            // 상태 클래스 업데이트
+            toolEl.classList.remove('running');
+            toolEl.classList.add(data.result.success ? 'success' : 'error');
 
-            // 모든 도구가 완료되었는지 확인
-            const parentGroup = toolEl.closest('.tool-group');
-            if (parentGroup) {
-              const spinners = parentGroup.querySelectorAll('.tool-status.spinner');
-              if (spinners.length === 0) {
-                // 모두 완료 - 그룹 접기 및 제목 업데이트
-                parentGroup.classList.add('completed', 'collapsed');
-                const titleEl = parentGroup.querySelector('.tool-group-title');
-                const itemCount = parentGroup.querySelectorAll('.tool-call').length;
-                const successCount = parentGroup.querySelectorAll('.tool-status.success').length;
-                titleEl.textContent = \`\${itemCount}개 도구 실행 완료 (\${successCount} 성공)\`;
-              }
+            // 결과 표시
+            const infoEl = toolEl.querySelector('.tool-info');
+            if (infoEl && data.description) {
+              const resultEl = document.createElement('div');
+              resultEl.className = 'tool-result' + (data.result.success ? '' : ' error');
+              resultEl.textContent = data.description;
+              infoEl.appendChild(resultEl);
             }
+            // 스피너는 taskComplete에서만 제거 - 도구 완료 후에도 AI가 다음 작업 준비 중이므로 계속 표시
           }
           break;
 
@@ -1264,6 +1700,53 @@ export class TimelyChatPanel {
       }
     }
     window.toggleToolGroup = toggleToolGroup;
+
+    // 도구 정보 포맷팅 (Claude Code 스타일 + 아이콘)
+    function formatToolInfo(toolCall) {
+      const params = toolCall.parameters || {};
+      switch (toolCall.name) {
+        case 'search_files':
+          return {
+            icon: '🔍',
+            type: 'Search',
+            detail: \`<code>"\${escapeHtml(params.query || '')}"</code>\` +
+                   (params.filePattern ? \` <span class="tool-param">pattern:</span> <code>\${escapeHtml(params.filePattern)}</code>\` : '') +
+                   (params.path ? \` <span class="tool-param">in:</span> <code>\${escapeHtml(params.path)}</code>\` : '')
+          };
+        case 'list_files':
+          return {
+            icon: '📂',
+            type: 'Glob',
+            detail: \`<code>"\${escapeHtml(params.pattern || '*')}"</code>\` +
+                   (params.directory ? \` <span class="tool-param">in:</span> <code>\${escapeHtml(params.directory)}</code>\` : '')
+          };
+        case 'read_file':
+          return {
+            icon: '📄',
+            type: 'Read',
+            detail: \`<code>\${escapeHtml(params.path || '')}</code>\` +
+                   (params.startLine ? \` <span class="tool-param">lines</span> \${params.startLine}-\${params.endLine || 'end'}\` : '')
+          };
+        case 'write_file':
+          return {
+            icon: '✏️',
+            type: 'Write',
+            detail: \`<code>\${escapeHtml(params.path || '')}</code>\`
+          };
+        case 'edit_file':
+          return {
+            icon: '🔧',
+            type: 'Edit',
+            detail: \`<code>\${escapeHtml(params.path || '')}</code>\`
+          };
+        default:
+          return {
+            icon: '⚡',
+            type: toolCall.name,
+            detail: JSON.stringify(params)
+          };
+      }
+    }
 
     vscode.postMessage({ type: 'ready' });
   </script>

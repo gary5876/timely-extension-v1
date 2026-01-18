@@ -2,7 +2,7 @@
   "name": "timely-chat-vscode",
   "displayName": "Timely Chat",
   "description": "Timely GPT AI Chat integration for VS Code with keyboard shortcuts, chat history, and code sharing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "HID",
   "repository": {
     "type": "git",

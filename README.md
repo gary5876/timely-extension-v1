@@ -140,7 +140,44 @@ timely-chat
 
 ## 변경 이력
 
-### v1.0.0 (현재)
+### v1.0.1 (현재)
+
+**AI 파일 작업 도구 시스템 추가:**
+
+이제 Timely Chat이 단순한 채팅봇을 넘어 **프로젝트를 분석하고 파일을 편집할 수 있는 강력한 AI 코딩 어시스턴트**로 진화했습니다!
+
+- 🔧 **5가지 파일 작업 도구** (Claude Code 스타일)
+- read_file: 파일 내용 읽기 (줄 번호 포함)
+- write_file: 새 파일 생성
+- edit_file: 스마트 파일 편집 (diff 미리보기)
+- list_files: 프로젝트 파일 탐색
+- search_files: 파일 내용 검색
+
+- 🛡️ **강화된 보안 시스템**
+- 워크스페이스 경계 검증으로 외부 파일 접근 차단
+- 민감한 파일 자동 차단 (.env, *.key, credentials 등)
+- 파일 크기 제한 (기본 100KB, 설정 가능)
+- 수동/자동 적용 모드 선택
+
+- 📊 **Unified Diff 생성기**
+- 파일 변경사항을 적용 전 미리보기
+- Git 스타일의 diff 표시
+- 컨텍스트 기반 변경 내용 표시
+
+- ⚙️ **새로운 설정 옵션**
+- enableFileOperations: 파일 작업 활성화/비활성화 (기본: true)
+- fileOperationAutoApply: 파일 편집 자동 적용 (기본: false)
+- blockedFilePatterns: AI 접근 차단 파일 패턴 목록
+- maxFileReadSize: AI가 읽을 수 있는 최대 파일 크기 (바이트)
+
+- 🏗️ **새로운 아키텍처**
+- Tool Parser: AI 응답에서 도구 호출 파싱
+- Tool Executor: 도구 실행 및 결과 관리
+- File Service: 파일 작업 처리
+- Diff Generator: 변경사항 시각화
+
+
+### v1.0.0 
 
 **정식 릴리스:**
 - AI 파일 읽기/쓰기/편집 기능 추가

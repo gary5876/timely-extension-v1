@@ -14,7 +14,12 @@
       "Bash(npx vsce publish)",
       "Bash(ls -la \"c:\\\\Users\\\\jerry\\\\Desktop\\\\hobby\\\\extension\\\\media\"\" 2>/dev/null || dir \"c:UsersjerryDesktophobbyextensionmedia \")",
       "Read(//c/Users/jerry/.vscode/extensions/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(code --list-extensions:*)",
+      "Bash(node -e:*)",
+      "Bash(node --check:*)",
+      "Bash(npm ls:*)",
+      "Bash(taskkill:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jerry\\Desktop\\hobby\\extension"
