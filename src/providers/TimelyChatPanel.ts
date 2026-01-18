@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import { getExtensionConfig } from '../utils/config';
+import type { ToolCall, ToolResult, EditResult } from '../types/tools';
+import { applyEdit } from '../services/fileService';
+import { describeToolCall, formatToolResultForDisplay } from '../services/toolParser';
 
 /**
  * 에디터 패널 채팅 (멀티 인스턴스 지원)
@@ -114,6 +117,12 @@ export class TimelyChatPanel {
           case 'changeModel':
             await this._handleChangeModel(message.model);
             break;
+          case 'applyEdit':
+            await this._handleApplyEdit(message.path, message.newContent);
+            break;
+          case 'openFile':
+            await this._handleOpenFile(message.path);
+            break;
         }
       },
       null,
@@ -121,9 +130,32 @@ export class TimelyChatPanel {
     );
   }
 
+  private async _handleApplyEdit(filePath: string, newContent: string) {
+    const success = await applyEdit(filePath, newContent);
+    if (success) {
+      vscode.window.showInformationMessage(`파일이 수정되었습니다: ${filePath}`);
+      this._panel.webview.postMessage({ type: 'editApplied', path: filePath });
+    } else {
+      vscode.window.showErrorMessage(`파일 수정 실패: ${filePath}`);
+    }
+  }
+
+  private async _handleOpenFile(filePath: string) {
+    try {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (workspaceRoot) {
+        const fullPath = require('path').join(workspaceRoot, filePath);
+        const uri = vscode.Uri.file(fullPath);
+        await vscode.window.showTextDocument(uri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`파일을 열 수 없습니다: ${filePath}`);
+    }
+  }
+
   private async _handleSendMessage(text: string) {
     const config = getExtensionConfig();
-    const { initializeClient, isClientInitialized, sendMessageStream, createMessage } = await import('../services/chatService');
+    const { initializeClient, isClientInitialized, sendMessageWithTools, createMessage } = await import('../services/chatService');
     const { saveSessionMessages, loadSessionMessages } = await import('../utils/session');
 
     if (!isClientInitialized()) {
@@ -142,16 +174,44 @@ export class TimelyChatPanel {
     messages.push(assistantMessage);
     this._panel.webview.postMessage({ type: 'addMessage', message: assistantMessage });
 
-    // 스트리밍 응답
-    await sendMessageStream(this._sessionId, text, {
+    // 도구 지원 스트리밍 응답
+    await sendMessageWithTools(this._sessionId, text, {
       model: config.model,
       instructions: config.instructions,
+      enableTools: true,
       onToken: (token) => {
         this._panel.webview.postMessage({
           type: 'appendToken',
           messageId: assistantMessage.id,
           token,
         });
+      },
+      onToolCall: (toolCall: ToolCall) => {
+        // 도구 실행 시작 알림
+        this._panel.webview.postMessage({
+          type: 'toolCallStart',
+          toolCall,
+          description: describeToolCall(toolCall),
+        });
+      },
+      onToolResult: (result: ToolResult) => {
+        // 도구 실행 결과 알림
+        this._panel.webview.postMessage({
+          type: 'toolCallComplete',
+          result,
+          description: formatToolResultForDisplay(result),
+        });
+
+        // 편집 결과인 경우 diff 표시
+        if (result.toolName === 'edit_file' && result.success && result.result) {
+          const editResult = result.result as EditResult;
+          this._panel.webview.postMessage({
+            type: 'showDiff',
+            path: editResult.path,
+            diff: editResult.diff,
+            newContent: editResult.newContent,
+          });
+        }
       },
       onComplete: async (fullMessage) => {
         assistantMessage.content = fullMessage;
@@ -502,6 +562,193 @@ export class TimelyChatPanel {
     @keyframes pulse {
       0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
       40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* 도구 호출 그룹 컨테이너 */
+    .tool-group {
+      margin: 12px 24px;
+      background: var(--vscode-textBlockQuote-background);
+      border-left: 3px solid var(--vscode-textLink-foreground);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .tool-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(0,0,0,0.1);
+    }
+
+    .tool-group-header:hover {
+      background: rgba(0,0,0,0.15);
+    }
+
+    .tool-group-toggle {
+      font-size: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .tool-group.collapsed .tool-group-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .tool-group-title {
+      flex: 1;
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .tool-group-count {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      background: rgba(255,255,255,0.1);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .tool-group-items {
+      max-height: 500px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .tool-group.collapsed .tool-group-items {
+      max-height: 0;
+    }
+
+    /* 개별 도구 호출 */
+    .tool-call {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px;
+    }
+
+    .tool-call:first-child {
+      border-top: none;
+    }
+
+    .tool-icon {
+      font-size: 14px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .tool-name {
+      flex: 1;
+      color: var(--vscode-foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tool-status {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tool-status.spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--vscode-textLink-foreground);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .tool-status.success {
+      color: var(--vscode-testing-iconPassed);
+    }
+
+    .tool-status.error {
+      color: var(--vscode-testing-iconFailed);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Diff 블록 */
+    .diff-block {
+      margin: 12px 24px;
+      background: var(--vscode-textCodeBlock-background);
+      border-radius: 8px;
+      overflow: hidden;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .diff-header {
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.2);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .diff-content {
+      margin: 0;
+      padding: 12px 14px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .diff-actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.1);
+    }
+
+    .diff-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .apply-btn {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+
+    .apply-btn:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+
+    .reject-btn {
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+
+    .reject-btn:hover {
+      background: var(--vscode-button-secondaryHoverBackground);
+    }
+
+    .applied-badge, .rejected-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .applied-badge {
+      background: var(--vscode-testing-iconPassed);
+      color: white;
+    }
+
+    .rejected-badge {
+      background: var(--vscode-descriptionForeground);
+      color: white;
     }
 
     /* 입력 영역 */
@@ -892,8 +1139,131 @@ export class TimelyChatPanel {
             modelSelect.appendChild(option);
           });
           break;
+
+        case 'toolCallStart':
+          // 도구 그룹 컨테이너 찾기 또는 생성
+          let toolGroup = messagesContainer.querySelector('.tool-group:last-child:not(.completed)');
+          if (!toolGroup) {
+            toolGroup = document.createElement('div');
+            toolGroup.className = 'tool-group';
+            toolGroup.innerHTML = \`
+              <div class="tool-group-header" onclick="toggleToolGroup(this)">
+                <span class="tool-group-toggle">▼</span>
+                <span class="tool-group-title">도구 실행 중...</span>
+                <span class="tool-group-count">0</span>
+              </div>
+              <div class="tool-group-items"></div>
+            \`;
+            messagesContainer.appendChild(toolGroup);
+          }
+
+          // 도구 항목 추가
+          const toolItems = toolGroup.querySelector('.tool-group-items');
+          const toolCallEl = document.createElement('div');
+          toolCallEl.className = 'tool-call';
+          toolCallEl.id = 'tool-' + data.toolCall.id;
+          toolCallEl.innerHTML = \`
+            <span class="tool-icon">⚙️</span>
+            <span class="tool-name">\${data.description}</span>
+            <span class="tool-status spinner"></span>
+          \`;
+          toolItems.appendChild(toolCallEl);
+
+          // 카운트 업데이트
+          const countEl = toolGroup.querySelector('.tool-group-count');
+          const count = toolItems.children.length;
+          countEl.textContent = count;
+
+          scrollToBottom();
+          break;
+
+        case 'toolCallComplete':
+          // 도구 실행 완료 표시
+          const toolEl = document.getElementById('tool-' + data.result.toolCallId);
+          if (toolEl) {
+            const statusEl = toolEl.querySelector('.tool-status');
+            if (statusEl) {
+              statusEl.className = 'tool-status ' + (data.result.success ? 'success' : 'error');
+              statusEl.textContent = data.result.success ? '✓' : '✗';
+            }
+
+            // 모든 도구가 완료되었는지 확인
+            const parentGroup = toolEl.closest('.tool-group');
+            if (parentGroup) {
+              const spinners = parentGroup.querySelectorAll('.tool-status.spinner');
+              if (spinners.length === 0) {
+                // 모두 완료 - 그룹 접기 및 제목 업데이트
+                parentGroup.classList.add('completed', 'collapsed');
+                const titleEl = parentGroup.querySelector('.tool-group-title');
+                const itemCount = parentGroup.querySelectorAll('.tool-call').length;
+                const successCount = parentGroup.querySelectorAll('.tool-status.success').length;
+                titleEl.textContent = \`\${itemCount}개 도구 실행 완료 (\${successCount} 성공)\`;
+              }
+            }
+          }
+          break;
+
+        case 'showDiff':
+          // Diff 표시 (편집 승인용)
+          const diffEl = document.createElement('div');
+          diffEl.className = 'diff-block';
+          diffEl.innerHTML = \`
+            <div class="diff-header">📝 \${data.path} 변경 사항</div>
+            <pre class="diff-content">\${escapeHtml(data.diff)}</pre>
+            <div class="diff-actions">
+              <button class="diff-btn apply-btn" onclick="applyEdit('\${data.path}')">적용</button>
+              <button class="diff-btn reject-btn" onclick="rejectEdit(this)">취소</button>
+            </div>
+          \`;
+          diffEl.dataset.path = data.path;
+          diffEl.dataset.newContent = data.newContent;
+          messagesContainer.appendChild(diffEl);
+          scrollToBottom();
+          break;
+
+        case 'editApplied':
+          // 편집 적용 완료
+          const appliedDiff = document.querySelector(\`.diff-block[data-path="\${data.path}"]\`);
+          if (appliedDiff) {
+            appliedDiff.querySelector('.diff-actions').innerHTML = '<span class="applied-badge">✓ 적용됨</span>';
+          }
+          break;
       }
     });
+
+    // 편집 적용 함수
+    function applyEdit(path) {
+      const diffBlock = document.querySelector(\`.diff-block[data-path="\${path}"]\`);
+      if (diffBlock) {
+        const newContent = diffBlock.dataset.newContent;
+        vscode.postMessage({ type: 'applyEdit', path, newContent });
+      }
+    }
+    window.applyEdit = applyEdit;
+
+    // 편집 취소 함수
+    function rejectEdit(btn) {
+      const diffBlock = btn.closest('.diff-block');
+      if (diffBlock) {
+        diffBlock.querySelector('.diff-actions').innerHTML = '<span class="rejected-badge">✗ 취소됨</span>';
+      }
+    }
+    window.rejectEdit = rejectEdit;
+
+    // 파일 열기 함수
+    function openFile(path) {
+      vscode.postMessage({ type: 'openFile', path });
+    }
+    window.openFile = openFile;
+
+    // 도구 그룹 접기/펼치기
+    function toggleToolGroup(header) {
+      const group = header.closest('.tool-group');
+      if (group) {
+        group.classList.toggle('collapsed');
+      }
+    }
+    window.toggleToolGroup = toggleToolGroup;
 
     vscode.postMessage({ type: 'ready' });
   </script>

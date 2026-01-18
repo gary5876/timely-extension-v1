@@ -2,7 +2,7 @@
   "name": "timely-chat-vscode",
   "displayName": "Timely Chat",
   "description": "Timely GPT AI Chat integration for VS Code with keyboard shortcuts, chat history, and code sharing",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "publisher": "HID",
   "repository": {
     "type": "git",
@@ -128,6 +128,26 @@
           "type": "string",
           "default": "",
           "description": "AI에게 전달할 커스텀 지시사항 (선택)"
+        },
+        "timelyChat.enableFileOperations": {
+          "type": "boolean",
+          "default": true,
+          "description": "AI 파일 읽기/쓰기/편집 기능 활성화"
+        },
+        "timelyChat.fileOperationAutoApply": {
+          "type": "boolean",
+          "default": false,
+          "description": "파일 편집 시 자동 적용 (확인 없이)"
+        },
+        "timelyChat.blockedFilePatterns": {
+          "type": "array",
+          "default": [".env", ".env.*", "*.key", "*.pem", "credentials.*"],
+          "description": "AI 접근을 차단할 파일 패턴"
+        },
+        "timelyChat.maxFileReadSize": {
+          "type": "number",
+          "default": 100000,
+          "description": "AI가 읽을 수 있는 최대 파일 크기 (바이트)"
         }
       }
     }

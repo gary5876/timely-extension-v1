@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import { getExtensionConfig } from '../utils/config';
+import type { ToolCall, ToolResult, EditResult } from '../types/tools';
+import { applyEdit } from '../services/fileService';
+import { describeToolCall, formatToolResultForDisplay } from '../services/toolParser';
 
 /**
  * 사이드바 채팅 (Claude Code 스타일)
@@ -57,15 +60,44 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
         case 'close':
           await vscode.commands.executeCommand('workbench.action.closeSidebar');
           break;
+        case 'applyEdit':
+          await this._handleApplyEdit(message.path, message.newContent);
+          break;
+        case 'openFile':
+          await this._handleOpenFile(message.path);
+          break;
       }
     });
+  }
+
+  private async _handleApplyEdit(filePath: string, newContent: string) {
+    const success = await applyEdit(filePath, newContent);
+    if (success) {
+      vscode.window.showInformationMessage(`파일이 수정되었습니다: ${filePath}`);
+      this._view?.webview.postMessage({ type: 'editApplied', path: filePath });
+    } else {
+      vscode.window.showErrorMessage(`파일 수정 실패: ${filePath}`);
+    }
+  }
+
+  private async _handleOpenFile(filePath: string) {
+    try {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (workspaceRoot) {
+        const fullPath = require('path').join(workspaceRoot, filePath);
+        const uri = vscode.Uri.file(fullPath);
+        await vscode.window.showTextDocument(uri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`파일을 열 수 없습니다: ${filePath}`);
+    }
   }
 
   private async _handleSendMessage(text: string) {
     if (!this._view) return;
 
     const config = getExtensionConfig();
-    const { initializeClient, isClientInitialized, sendMessageStream, createMessage } = await import('../services/chatService');
+    const { initializeClient, isClientInitialized, sendMessageWithTools, createMessage } = await import('../services/chatService');
     const { saveSessionMessages, loadSessionMessages } = await import('../utils/session');
 
     if (!isClientInitialized()) {
@@ -84,16 +116,41 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
     messages.push(assistantMessage);
     this._view.webview.postMessage({ type: 'addMessage', message: assistantMessage });
 
-    // 스트리밍 응답
-    await sendMessageStream(this._sessionId, text, {
+    // 도구 지원 스트리밍 응답
+    await sendMessageWithTools(this._sessionId, text, {
       model: config.model,
       instructions: config.instructions,
+      enableTools: true,
       onToken: (token) => {
         this._view?.webview.postMessage({
           type: 'appendToken',
           messageId: assistantMessage.id,
           token,
         });
+      },
+      onToolCall: (toolCall: ToolCall) => {
+        this._view?.webview.postMessage({
+          type: 'toolCallStart',
+          toolCall,
+          description: describeToolCall(toolCall),
+        });
+      },
+      onToolResult: (result: ToolResult) => {
+        this._view?.webview.postMessage({
+          type: 'toolCallComplete',
+          result,
+          description: formatToolResultForDisplay(result),
+        });
+
+        if (result.toolName === 'edit_file' && result.success && result.result) {
+          const editResult = result.result as EditResult;
+          this._view?.webview.postMessage({
+            type: 'showDiff',
+            path: editResult.path,
+            diff: editResult.diff,
+            newContent: editResult.newContent,
+          });
+        }
       },
       onComplete: async (fullMessage) => {
         assistantMessage.content = fullMessage;
@@ -454,6 +511,151 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
       0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
       40% { opacity: 1; transform: scale(1); }
     }
+
+    /* 도구 호출 그룹 */
+    .tool-group {
+      margin: 8px 16px;
+      background: var(--vscode-textBlockQuote-background);
+      border-left: 3px solid var(--vscode-textLink-foreground);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .tool-group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      background: rgba(0,0,0,0.1);
+      font-size: 11px;
+    }
+
+    .tool-group-toggle {
+      font-size: 9px;
+      transition: transform 0.2s ease;
+    }
+
+    .tool-group.collapsed .tool-group-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .tool-group-title {
+      flex: 1;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .tool-group-count {
+      font-size: 10px;
+      background: rgba(255,255,255,0.1);
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    .tool-group-items {
+      max-height: 400px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .tool-group.collapsed .tool-group-items {
+      max-height: 0;
+    }
+
+    .tool-call {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+    }
+
+    .tool-call:first-child { border-top: none; }
+
+    .tool-icon { font-size: 12px; width: 16px; text-align: center; }
+
+    .tool-name {
+      flex: 1;
+      color: var(--vscode-foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tool-status { font-size: 11px; font-weight: 600; }
+
+    .tool-status.spinner {
+      width: 10px;
+      height: 10px;
+      border: 2px solid var(--vscode-textLink-foreground);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .tool-status.success { color: var(--vscode-testing-iconPassed); }
+    .tool-status.error { color: var(--vscode-testing-iconFailed); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .diff-block {
+      margin: 8px 16px;
+      background: var(--vscode-textCodeBlock-background);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .diff-header {
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .diff-content {
+      margin: 0;
+      padding: 10px 12px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 11px;
+      line-height: 1.4;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .diff-actions {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.1);
+    }
+
+    .diff-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .apply-btn {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+
+    .reject-btn {
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+
+    .applied-badge, .rejected-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .applied-badge { background: var(--vscode-testing-iconPassed); color: white; }
+    .rejected-badge { background: var(--vscode-descriptionForeground); color: white; }
 
     /* 입력 영역 */
     .input-area {
@@ -861,8 +1063,119 @@ export class TimelyViewProvider implements vscode.WebviewViewProvider {
             modelSelect.appendChild(option);
           });
           break;
+
+        case 'toolCallStart':
+          // 도구 그룹 컨테이너 찾기 또는 생성
+          let toolGroup = messagesContainer.querySelector('.tool-group:last-child:not(.completed)');
+          if (!toolGroup) {
+            toolGroup = document.createElement('div');
+            toolGroup.className = 'tool-group';
+            toolGroup.innerHTML = \`
+              <div class="tool-group-header" onclick="toggleToolGroup(this)">
+                <span class="tool-group-toggle">▼</span>
+                <span class="tool-group-title">도구 실행 중...</span>
+                <span class="tool-group-count">0</span>
+              </div>
+              <div class="tool-group-items"></div>
+            \`;
+            messagesContainer.appendChild(toolGroup);
+          }
+
+          const toolItems = toolGroup.querySelector('.tool-group-items');
+          const toolCallEl = document.createElement('div');
+          toolCallEl.className = 'tool-call';
+          toolCallEl.id = 'tool-' + data.toolCall.id;
+          toolCallEl.innerHTML = \`
+            <span class="tool-icon">⚙️</span>
+            <span class="tool-name">\${data.description}</span>
+            <span class="tool-status spinner"></span>
+          \`;
+          toolItems.appendChild(toolCallEl);
+
+          const countEl = toolGroup.querySelector('.tool-group-count');
+          countEl.textContent = toolItems.children.length;
+
+          scrollToBottom();
+          break;
+
+        case 'toolCallComplete':
+          const toolEl = document.getElementById('tool-' + data.result.toolCallId);
+          if (toolEl) {
+            const statusEl = toolEl.querySelector('.tool-status');
+            if (statusEl) {
+              statusEl.className = 'tool-status ' + (data.result.success ? 'success' : 'error');
+              statusEl.textContent = data.result.success ? '✓' : '✗';
+            }
+
+            const parentGroup = toolEl.closest('.tool-group');
+            if (parentGroup) {
+              const spinners = parentGroup.querySelectorAll('.tool-status.spinner');
+              if (spinners.length === 0) {
+                parentGroup.classList.add('completed', 'collapsed');
+                const titleEl = parentGroup.querySelector('.tool-group-title');
+                const itemCount = parentGroup.querySelectorAll('.tool-call').length;
+                const successCount = parentGroup.querySelectorAll('.tool-status.success').length;
+                titleEl.textContent = \`\${itemCount}개 도구 실행 완료 (\${successCount} 성공)\`;
+              }
+            }
+          }
+          break;
+
+        case 'showDiff':
+          const diffEl = document.createElement('div');
+          diffEl.className = 'diff-block';
+          diffEl.innerHTML = \`
+            <div class="diff-header">📝 \${data.path}</div>
+            <pre class="diff-content">\${escapeHtml(data.diff)}</pre>
+            <div class="diff-actions">
+              <button class="diff-btn apply-btn" onclick="applyEdit('\${data.path}')">적용</button>
+              <button class="diff-btn reject-btn" onclick="rejectEdit(this)">취소</button>
+            </div>
+          \`;
+          diffEl.dataset.path = data.path;
+          diffEl.dataset.newContent = data.newContent;
+          messagesContainer.appendChild(diffEl);
+          scrollToBottom();
+          break;
+
+        case 'editApplied':
+          const appliedDiff = document.querySelector(\`.diff-block[data-path="\${data.path}"]\`);
+          if (appliedDiff) {
+            appliedDiff.querySelector('.diff-actions').innerHTML = '<span class="applied-badge">✓ 적용됨</span>';
+          }
+          break;
       }
     });
+
+    function applyEdit(path) {
+      const diffBlock = document.querySelector(\`.diff-block[data-path="\${path}"]\`);
+      if (diffBlock) {
+        const newContent = diffBlock.dataset.newContent;
+        vscode.postMessage({ type: 'applyEdit', path, newContent });
+      }
+    }
+    window.applyEdit = applyEdit;
+
+    function rejectEdit(btn) {
+      const diffBlock = btn.closest('.diff-block');
+      if (diffBlock) {
+        diffBlock.querySelector('.diff-actions').innerHTML = '<span class="rejected-badge">✗ 취소됨</span>';
+      }
+    }
+    window.rejectEdit = rejectEdit;
+
+    function openFile(path) {
+      vscode.postMessage({ type: 'openFile', path });
+    }
+    window.openFile = openFile;
+
+    function toggleToolGroup(header) {
+      const group = header.closest('.tool-group');
+      if (group) {
+        group.classList.toggle('collapsed');
+      }
+    }
+    window.toggleToolGroup = toggleToolGroup;
 
     vscode.postMessage({ type: 'ready' });
   </script>
